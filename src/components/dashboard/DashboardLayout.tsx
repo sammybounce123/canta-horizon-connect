@@ -2,23 +2,17 @@ import { ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Bell, Search, ShieldCheck } from "lucide-react";
-import { SegmentSwitch, Segment } from "./SegmentSwitch";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
 interface Props {
-  segment: Segment;
-  setSegment: (s: Segment) => void;
   children: ReactNode;
 }
 
-export const DashboardLayout = ({ segment, setSegment, children }: Props) => {
-  const title = segment === "exporter" ? "Canta for Exporters" : "Canta Treasury Platform";
-  const subtitle =
-    segment === "exporter"
-      ? "Get paid globally, settle locally."
-      : "Optimize your global treasury at scale.";
+export const DashboardLayout = ({ children }: Props) => {
+  const title = "Canta Treasury Platform";
+  const subtitle = "Optimize your global treasury at scale.";
 
   return (
     <div className="min-h-screen bg-background">
@@ -28,7 +22,7 @@ export const DashboardLayout = ({ segment, setSegment, children }: Props) => {
           <Link to="/" className="flex items-center gap-2">
             <span className="text-xl font-bold text-gradient">Canta</span>
             <span className="hidden text-xs font-medium text-muted-foreground md:inline">
-              {segment === "exporter" ? "Exporter" : "Treasury"}
+              Treasury
             </span>
           </Link>
 
@@ -43,7 +37,6 @@ export const DashboardLayout = ({ segment, setSegment, children }: Props) => {
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3">
-            <SegmentSwitch value={segment} onChange={setSegment} />
             <Button variant="ghost" size="icon" aria-label="Notifications" className="relative">
               <Bell className="h-5 w-5" />
               <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-success" />
