@@ -13,8 +13,13 @@ const rates = [
   { p: "RMB/NGN", r: 222.6, b: 213, s: "+4.5%" },
 ];
 
+const USD_NGN = 1612.4;
+
 export const FxView = () => {
   const [shock, setShock] = useState([-2]);
+  const [usd, setUsd] = useState("100,000");
+  const usdNum = Number(usd.replace(/[^0-9.]/g, "")) || 0;
+  const ngn = usdNum * USD_NGN;
   const exposure = 1_960_000;
   const impact = exposure * (shock[0] / 100);
   return (
@@ -53,11 +58,20 @@ export const FxView = () => {
             <CardContent className="space-y-3">
               <div>
                 <label className="text-xs text-muted-foreground">From (USD)</label>
-                <Input defaultValue="100,000" className="mt-1 font-mono" />
+                <Input
+                  value={usd}
+                  onChange={(e) => setUsd(e.target.value)}
+                  inputMode="decimal"
+                  className="mt-1 font-mono"
+                />
               </div>
               <div>
                 <label className="text-xs text-muted-foreground">To (NGN)</label>
-                <Input readOnly value="₦161,240,000" className="mt-1 font-mono" />
+                <Input
+                  readOnly
+                  value={`₦${ngn.toLocaleString(undefined, { maximumFractionDigits: 2 })}`}
+                  className="mt-1 font-mono"
+                />
               </div>
               <div className="grid grid-cols-2 gap-2 pt-1">
                 <Button className="bg-gradient-primary">Convert</Button>
