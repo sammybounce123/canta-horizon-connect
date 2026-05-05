@@ -31,7 +31,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { toast } from "@/hooks/use-toast";
 
-type ClientType = "exporter" | "importer" | "treasury";
+type ClientType = "importer" | "treasury";
 
 const CLIENTS: {
   key: ClientType;
@@ -40,13 +40,6 @@ const CLIENTS: {
   icon: typeof Briefcase;
   badges: string[];
 }[] = [
-  {
-    key: "exporter",
-    title: "Exporter",
-    blurb: "Get paid by global buyers and settle into your Nigerian bank.",
-    icon: Briefcase,
-    badges: ["GBP / EUR / USD collections", "Form NXP support", "Faster settlement"],
-  },
   {
     key: "importer",
     title: "Importer",
@@ -64,7 +57,6 @@ const CLIENTS: {
 ];
 
 const STEP_LABELS: Record<ClientType, string[]> = {
-  exporter: ["Choose type", "Business", "Exports & banking", "Compliance", "Review"],
   importer: ["Choose type", "Business", "Imports & banking", "Compliance", "Review"],
   treasury: ["Choose type", "Company", "Treasury setup", "Controls & users", "Review"],
 };
@@ -157,7 +149,7 @@ const Onboarding = () => {
                 Tell us how you'll use Canta so we can tailor your onboarding.
               </p>
 
-              <div className="mt-6 grid gap-4 md:grid-cols-3">
+              <div className="mt-6 grid gap-4 md:grid-cols-2">
                 {CLIENTS.map((c) => {
                   const Icon = c.icon;
                   const active = client === c.key;
@@ -292,53 +284,6 @@ const Onboarding = () => {
           )}
 
           {/* Step 2 — segment-specific */}
-          {step === 2 && client === "exporter" && (
-            <motion.div key="ex" {...fadeUp}>
-              <StepHeader
-                icon={Globe2}
-                title="Exports & banking"
-                subtitle="Where you ship to, and where we should settle."
-              />
-              <Card className="border-border bg-card">
-                <CardContent className="grid gap-4 p-6 md:grid-cols-2">
-                  <Field label="Primary export commodity">
-                    <Select onValueChange={(v) => set("commodity", v)}>
-                      <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
-                      <SelectContent>
-                        {["Cocoa", "Cashew", "Sesame", "Manufactured goods", "Other"].map((c) => (
-                          <SelectItem key={c} value={c}>{c}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </Field>
-                  <Field label="Top buyer countries">
-                    <Input placeholder="e.g. UK, Netherlands, USA" onChange={(e) => set("markets", e.target.value)} />
-                  </Field>
-                  <Field label="Average monthly export volume (USD)">
-                    <Input placeholder="$50,000" onChange={(e) => set("volume", e.target.value)} />
-                  </Field>
-                  <Field label="Currencies you receive in">
-                    <Input placeholder="USD, GBP, EUR" onChange={(e) => set("ccy", e.target.value)} />
-                  </Field>
-                  <Field label="Nigerian bank for settlement" required>
-                    <Select onValueChange={(v) => set("bank", v)}>
-                      <SelectTrigger><SelectValue placeholder="Select bank" /></SelectTrigger>
-                      <SelectContent>
-                        {["GTBank", "Access Bank", "Zenith", "First Bank", "UBA", "Stanbic IBTC"].map((b) => (
-                          <SelectItem key={b} value={b}>{b}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </Field>
-                  <Field label="Settlement account number" required>
-                    <Input placeholder="0123456789" onChange={(e) => set("acct", e.target.value)} />
-                  </Field>
-                </CardContent>
-              </Card>
-              <Nav back={back} next={next} />
-            </motion.div>
-          )}
-
           {step === 2 && client === "importer" && (
             <motion.div key="im" {...fadeUp}>
               <StepHeader
@@ -449,7 +394,7 @@ const Onboarding = () => {
                     "Certificate of Incorporation",
                     "CAC status report / Form CAC 1.1",
                     "Tax Identification Number (TIN)",
-                    client === "exporter" ? "NEPC certificate (if any)" : "Form M / import license (if any)",
+                    "Form M / import license (if any)",
                     "Director ID (passport or driver's licence)",
                   ].map((doc) => (
                     <UploadRow key={doc} label={doc} />
@@ -534,12 +479,6 @@ const Onboarding = () => {
                   <Row k="RC number" v={(form.rc as string) || "—"} />
                   <Row k="Industry" v={(form.industry as string) || "—"} />
                   <Row k="Email" v={(form.email as string) || "—"} />
-                  {client === "exporter" && (
-                    <>
-                      <Row k="Commodity" v={(form.commodity as string) || "—"} />
-                      <Row k="Settlement bank" v={(form.bank as string) || "—"} />
-                    </>
-                  )}
                   {client === "importer" && (
                     <>
                       <Row k="Goods" v={(form.goods as string) || "—"} />
