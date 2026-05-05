@@ -58,11 +58,20 @@ export const FxView = () => {
             <CardContent className="space-y-3">
               <div>
                 <label className="text-xs text-muted-foreground">From (USD)</label>
-                <Input defaultValue="100,000" className="mt-1 font-mono" />
+                <Input
+                  value={usd}
+                  onChange={(e) => setUsd(e.target.value)}
+                  inputMode="decimal"
+                  className="mt-1 font-mono"
+                />
               </div>
               <div>
                 <label className="text-xs text-muted-foreground">To (NGN)</label>
-                <Input readOnly value="₦161,240,000" className="mt-1 font-mono" />
+                <Input
+                  readOnly
+                  value={`₦${ngn.toLocaleString(undefined, { maximumFractionDigits: 2 })}`}
+                  className="mt-1 font-mono"
+                />
               </div>
               <div className="grid grid-cols-2 gap-2 pt-1">
                 <Button className="bg-gradient-primary">Convert</Button>
