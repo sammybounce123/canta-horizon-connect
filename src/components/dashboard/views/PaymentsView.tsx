@@ -1,0 +1,103 @@
+import { useState } from "react";
+import { motion } from "framer-motion";
+import { CheckCircle2, Layers, Workflow } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+
+type Row = { ref: string; party: string; amount: string; level: string; status: "Pending" | "Approved" | "Scheduled" | "Settled"; date: string };
+
+const incoming: Row[] = [
+  { ref: "INV-9921", party: "Shell Trading Intl", amount: "$842,000", level: "—", status: "Settled", date: "Today 09:14" },
+  { ref: "INV-9918", party: "TotalEnergies", amount: "€312,500", level: "—", status: "Pending", date: "Today 06:02" },
+  { ref: "INV-9912", party: "Sinopec Engineering", amount: "$420,000", level: "—", status: "Settled", date: "Yesterday" },
+];
+
+const outgoing: Row[] = [
+  { ref: "PAY-8841", party: "Sinopec Engineering", amount: "$420,000", level: "L2 of 3", status: "Pending", date: "Today" },
+  { ref: "PAY-8839", party: "Halliburton UK", amount: "£185,000", level: "L3 of 3", status: "Approved", date: "Today" },
+  { ref: "PAY-8836", party: "Mediterranean Logistics", amount: "€96,400", level: "L1 of 3", status: "Pending", date: "Yesterday" },
+  { ref: "PAY-8821", party: "Maersk", amount: "$210,400", level: "L3 of 3", status: "Settled", date: "2d ago" },
+];
+
+const scheduled: Row[] = [
+  { ref: "SCH-204", party: "Payroll · UK entity", amount: "£94,200", level: "Auto · L3", status: "Scheduled", date: "May 28" },
+  { ref: "SCH-205", party: "VAT remittance · NG", amount: "₦142M", level: "Auto · L3", status: "Scheduled", date: "May 30" },
+  { ref: "SCH-206", party: "Vendor batch · 14 payees", amount: "$612,000", level: "Bulk · L2", status: "Scheduled", date: "Jun 02" },
+];
+
+const statusClass = (s: Row["status"]) =>
+  s === "Approved" || s === "Settled"
+    ? "border-success/40 bg-success/10 text-success"
+    : s === "Scheduled"
+    ? "border-primary/40 bg-primary/10 text-primary"
+    : "border-yellow-500/40 bg-yellow-500/10 text-yellow-500";
+
+const Table = ({ rows }: { rows: Row[] }) => (
+  <div className="overflow-x-auto">
+    <table className="w-full text-sm">
+      <thead>
+        <tr className="border-b border-border text-left text-xs uppercase text-muted-foreground">
+          <th className="px-6 py-3 font-medium">Reference</th>
+          <th className="px-4 py-3 font-medium">Counterparty</th>
+          <th className="px-4 py-3 font-medium">Amount</th>
+          <th className="px-4 py-3 font-medium">Approval</th>
+          <th className="px-4 py-3 font-medium">Date</th>
+          <th className="px-6 py-3 font-medium">Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {rows.map((a) => (
+          <tr key={a.ref} className="border-b border-border/60 last:border-0 hover:bg-muted/30">
+            <td className="px-6 py-3 font-mono text-xs">{a.ref}</td>
+            <td className="px-4 py-3 font-medium">{a.party}</td>
+            <td className="px-4 py-3 font-semibold">{a.amount}</td>
+            <td className="px-4 py-3 text-xs text-muted-foreground">{a.level}</td>
+            <td className="px-4 py-3 text-xs text-muted-foreground">{a.date}</td>
+            <td className="px-6 py-3">
+              <Badge variant="outline" className={statusClass(a.status)}>
+                {(a.status === "Approved" || a.status === "Settled") && <CheckCircle2 className="mr-1 h-3 w-3" />}
+                {a.status}
+              </Badge>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+);
+
+export const PaymentsView = () => {
+  const [tab, setTab] = useState("outgoing");
+  return (
+    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
+      <Card className="border-border bg-card">
+        <CardHeader className="flex-row items-center justify-between space-y-0">
+          <div>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Workflow className="h-5 w-5 text-primary" /> Payments management
+            </CardTitle>
+            <p className="text-xs text-muted-foreground">Bulk payments · Multi-level approvals · Batching</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" className="gap-1.5"><Layers className="h-4 w-4" /> Batch</Button>
+            <Button size="sm" className="bg-gradient-primary">New payment</Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <Tabs value={tab} onValueChange={setTab}>
+            <TabsList>
+              <TabsTrigger value="incoming">Incoming · {incoming.length}</TabsTrigger>
+              <TabsTrigger value="outgoing">Outgoing · {outgoing.length}</TabsTrigger>
+              <TabsTrigger value="scheduled">Scheduled · {scheduled.length}</TabsTrigger>
+            </TabsList>
+            <TabsContent value="incoming" className="mt-4"><Table rows={incoming} /></TabsContent>
+            <TabsContent value="outgoing" className="mt-4"><Table rows={outgoing} /></TabsContent>
+            <TabsContent value="scheduled" className="mt-4"><Table rows={scheduled} /></TabsContent>
+          </Tabs>
+        </CardContent>
+      </Card>
+    </motion.div>
+  );
+};
