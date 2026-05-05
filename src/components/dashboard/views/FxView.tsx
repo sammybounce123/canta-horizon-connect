@@ -13,8 +13,13 @@ const rates = [
   { p: "RMB/NGN", r: 222.6, b: 213, s: "+4.5%" },
 ];
 
+const USD_NGN = 1612.4;
+
 export const FxView = () => {
   const [shock, setShock] = useState([-2]);
+  const [usd, setUsd] = useState("100,000");
+  const usdNum = Number(usd.replace(/[^0-9.]/g, "")) || 0;
+  const ngn = usdNum * USD_NGN;
   const exposure = 1_960_000;
   const impact = exposure * (shock[0] / 100);
   return (
