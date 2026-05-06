@@ -6,44 +6,33 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useSegment, Segment } from "@/hooks/use-segment";
 
-export type DashboardSection =
-  | "overview"
-  | "cash"
-  | "payments"
-  | "fx"
-  | "analytics"
-  | "reports"
-  | "team";
+export type DashboardSection = string;
 
-const NAV: { id: DashboardSection; label: string }[] = [
-  { id: "overview", label: "Overview" },
-  { id: "cash", label: "Cash Positions" },
-  { id: "payments", label: "Payments" },
-  { id: "fx", label: "FX Management" },
-  { id: "analytics", label: "Analytics" },
-  { id: "reports", label: "Reports" },
-  { id: "team", label: "Team & Permissions" },
-];
-
-const TITLES: Record<DashboardSection, { title: string; subtitle: string }> = {
-  overview: { title: "Treasury Overview", subtitle: "See everything. Decide faster." },
-  cash: { title: "Cash Positions", subtitle: "Multi-currency cash across Nigeria & offshore accounts." },
-  payments: { title: "Payments", subtitle: "Bulk payments, approvals and batching in one place." },
-  fx: { title: "FX Management", subtitle: "Optimize FX at scale · Live rates and exposure simulation." },
-  analytics: { title: "Analytics & Insights", subtitle: "Volume, FX cost trends, exposure and counterparties." },
-  reports: { title: "Reports & Audit", subtitle: "Downloadable reports and full audit trail." },
-  team: { title: "Team & Permissions", subtitle: "Role-based access · Sessions · Security alerts." },
-};
+export interface NavItem {
+  id: string;
+  label: string;
+}
 
 interface Props {
   children: ReactNode;
   section: DashboardSection;
   onSectionChange: (s: DashboardSection) => void;
+  nav: NavItem[];
+  title: string;
+  subtitle: string;
 }
 
-export const DashboardLayout = ({ children, section, onSectionChange }: Props) => {
-  const { title, subtitle } = TITLES[section];
+export const DashboardLayout = ({
+  children,
+  section,
+  onSectionChange,
+  nav,
+  title,
+  subtitle,
+}: Props) => {
+  const { segment, setSegment } = useSegment();
 
   return (
     <div className="min-h-screen bg-background">
@@ -53,7 +42,7 @@ export const DashboardLayout = ({ children, section, onSectionChange }: Props) =
           <Link to="/" className="flex items-center gap-2">
             <span className="text-xl font-bold text-gradient">Canta</span>
             <span className="hidden text-xs font-medium text-muted-foreground md:inline">
-              Treasury OS
+              {segment === "treasury" ? "Treasury OS" : "Importer"}
             </span>
           </Link>
 
@@ -61,13 +50,18 @@ export const DashboardLayout = ({ children, section, onSectionChange }: Props) =
             <div className="relative">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
-                placeholder="Search payments, invoices, counterparties…  ⌘K"
+                placeholder={
+                  segment === "treasury"
+                    ? "Search payments, invoices, counterparties…  ⌘K"
+                    : "Search suppliers, payments…  ⌘K"
+                }
                 className="pl-9 bg-card border-border"
               />
             </div>
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3">
+            <SegmentToggle value={segment} onChange={setSegment} />
             <Button variant="ghost" size="icon" className="hidden sm:inline-flex" aria-label="Export">
               <Download className="h-5 w-5" />
             </Button>
@@ -82,7 +76,7 @@ export const DashboardLayout = ({ children, section, onSectionChange }: Props) =
         {/* Section nav */}
         <nav className="border-t border-border/60">
           <div className="container mx-auto flex gap-1 overflow-x-auto px-2 py-1 scrollbar-none">
-            {NAV.map((n) => {
+            {nav.map((n) => {
               const active = section === n.id;
               return (
                 <button
@@ -140,3 +134,42 @@ export const DashboardLayout = ({ children, section, onSectionChange }: Props) =
     </div>
   );
 };
+
+const SegmentToggle = ({
+  value,
+  onChange,
+}: {
+  value: Segment;
+  onChange: (s: Segment) => void;
+}) => (
+  <div
+    role="tablist"
+    aria-label="Account type"
+    className="hidden items-center rounded-full border border-border bg-card p-0.5 text-xs font-medium sm:flex"
+  >
+    {(["importer", "treasury"] as const).map((s) => {
+      const active = value === s;
+      return (
+        <button
+          key={s}
+          role="tab"
+          aria-selected={active}
+          onClick={() => onChange(s)}
+          className={cn(
+            "relative rounded-full px-3 py-1.5 capitalize transition-colors",
+            active ? "text-primary-foreground" : "text-muted-foreground hover:text-foreground"
+          )}
+        >
+          {active && (
+            <motion.span
+              layoutId="seg-toggle"
+              className="absolute inset-0 -z-10 rounded-full bg-gradient-primary"
+              transition={{ type: "spring", stiffness: 400, damping: 32 }}
+            />
+          )}
+          {s === "treasury" ? "Enterprise" : "Importer"}
+        </button>
+      );
+    })}
+  </div>
+);
