@@ -101,10 +101,6 @@ export const FxView = () => {
           </Card>
         </motion.div>
       </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-      </div>
 
       <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
         <Card className="border-border bg-card">
