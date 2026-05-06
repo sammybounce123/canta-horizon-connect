@@ -281,7 +281,7 @@ export const NewPaymentDialog = ({ trigger, initialMode = "send", initialDirecti
             </Button>
           )}
           {step === 2 && (
-            <Button className="bg-gradient-primary gap-2" onClick={() => { setStep(3); confirm(); }}>
+            <Button className="bg-gradient-primary gap-2" onClick={() => { confirm(); setStep(3); }}>
               <Send className="h-4 w-4" /> Confirm & {mode === "collect" ? "collect" : "send"}
             </Button>
           )}
