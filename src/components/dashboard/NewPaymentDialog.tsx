@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 import { useBeneficiaries, Beneficiary } from "@/hooks/use-beneficiaries";
 import { AddBeneficiaryDialog } from "./AddBeneficiaryDialog";
 import { toast } from "@/hooks/use-toast";
+import { useWallet } from "@/hooks/use-wallet";
 
 // Rates expressed as: 1 unit of source currency -> X units of beneficiary currency
 const RATES: Record<string, number> = { USD: 1, GBP: 0.785, EUR: 0.92, RMB: 7.24, INR: 83.1, NGN: 1612.4 };
@@ -29,6 +30,7 @@ interface Props {
 
 export const NewPaymentDialog = ({ trigger, initialMode = "send", initialDirection = "usd_to_ngn", initialAmount }: Props) => {
   const { beneficiaries } = useBeneficiaries();
+  const { ngn, usd, debitNgn, debitUsd, createTxn } = useWallet();
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState(0);
   const [mode, setMode] = useState<Mode>(initialMode);
@@ -100,13 +102,33 @@ export const NewPaymentDialog = ({ trigger, initialMode = "send", initialDirecti
   };
 
   const confirm = () => {
+    // Balance checks for payouts
+    if (mode === "send") {
+      if (fromCcy === "NGN" && num > ngn) {
+        toast({ title: "Insufficient NGN balance", description: `Available ₦${ngn.toLocaleString()}.`, variant: "destructive" });
+        return;
+      }
+      if (fromCcy === "USD" && num > usd) {
+        toast({ title: "Insufficient USD balance", description: `Available $${usd.toLocaleString()}.`, variant: "destructive" });
+        return;
+      }
+      if (fromCcy === "NGN") debitNgn(num); else debitUsd(num);
+    }
+    const txn = createTxn({
+      kind: mode === "collect" ? "collection" : "payout",
+      beneficiary: mode === "collect" ? "NGN inflow → USD wallet" : selected?.name ?? "Beneficiary",
+      bank: mode === "collect" ? "Wema Bank" : selected?.bank,
+      acct: selected?.acct,
+      fromCcy, toCcy,
+      fromAmount: num,
+      toAmount: recv,
+      rate,
+      reference: reference || (mode === "collect" ? "Wallet funding" : "Cross-border payout"),
+    });
     toast({
       title: mode === "collect" ? "Collection initiated" : "Payment initiated",
-      description: mode === "collect"
-        ? `${sym("NGN")}${num.toLocaleString()} → ${sym("USD")}${recv.toLocaleString(undefined, { maximumFractionDigits: 2 })} added to your USD balance.`
-        : `${sym(fromCcy)}${num.toLocaleString()} → ${selected?.name}. You'll be notified at each step.`,
+      description: `${txn.ref} · Track live in the Transaction Room.`,
     });
-    close(false);
   };
 
   return (
