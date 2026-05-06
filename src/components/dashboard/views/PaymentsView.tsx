@@ -100,6 +100,39 @@ export const PaymentsView = () => {
             <p className="text-xs text-muted-foreground">Bulk payments · Multi-level approvals · Batching</p>
           </div>
           <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1.5"
+              onClick={() => {
+                const wb = XLSX.utils.book_new();
+                const toRows = (rows: Row[], type: string) =>
+                  rows.map((r) => ({
+                    Type: type, Reference: r.ref, Counterparty: r.party,
+                    Amount: r.amount, Approval: r.level, Date: r.date, Status: r.status,
+                  }));
+                const all = [
+                  ...toRows(incoming, "Incoming"),
+                  ...toRows(outgoing, "Outgoing"),
+                  ...toRows(scheduled, "Scheduled"),
+                  ...toRows(collections, "Collection (NGN)"),
+                ];
+                XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(all), "All payments");
+                XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(toRows(incoming, "Incoming")), "Incoming");
+                XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(toRows(outgoing, "Outgoing")), "Outgoing");
+                XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(toRows(scheduled, "Scheduled")), "Scheduled");
+                XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(toRows(collections, "Collection (NGN)")), "Collections (NGN)");
+                XLSX.utils.book_append_sheet(
+                  wb,
+                  XLSX.utils.json_to_sheet(auditTrail.map((a) => ({ Reference: a.ref, User: a.who, Action: a.action, When: a.when }))),
+                  "Audit trail",
+                );
+                XLSX.writeFile(wb, `canta-payments-${format(new Date(), "yyyyMMdd-HHmm")}.xlsx`);
+                toast({ title: "Payments exported", description: `${all.length} payments + audit trail.` });
+              }}
+            >
+              <Download className="h-4 w-4" /> Export payments
+            </Button>
             <Button variant="outline" size="sm" className="gap-1.5"><Layers className="h-4 w-4" /> Batch</Button>
             <NewPaymentDialog
               initialMode="collect"
@@ -114,10 +147,12 @@ export const PaymentsView = () => {
               <TabsTrigger value="incoming">Incoming · {incoming.length}</TabsTrigger>
               <TabsTrigger value="outgoing">Outgoing · {outgoing.length}</TabsTrigger>
               <TabsTrigger value="scheduled">Scheduled · {scheduled.length}</TabsTrigger>
+              <TabsTrigger value="collections">Collections · {collections.length}</TabsTrigger>
             </TabsList>
             <TabsContent value="incoming" className="mt-4"><Table rows={incoming} /></TabsContent>
             <TabsContent value="outgoing" className="mt-4"><Table rows={outgoing} /></TabsContent>
             <TabsContent value="scheduled" className="mt-4"><Table rows={scheduled} /></TabsContent>
+            <TabsContent value="collections" className="mt-4"><Table rows={collections} /></TabsContent>
           </Tabs>
         </CardContent>
       </Card>
