@@ -5,6 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
+import { toast } from "@/hooks/use-toast";
+import { NewPaymentDialog } from "../NewPaymentDialog";
 
 const rates = [
   { p: "USD/NGN", r: 1612.4, b: 1548, s: "+4.2%" },
@@ -74,9 +76,31 @@ export const FxView = () => {
                 />
               </div>
               <div className="grid grid-cols-2 gap-2 pt-1">
-                <Button className="bg-gradient-primary">Convert</Button>
-                <Button variant="outline">Schedule</Button>
+                <Button
+                  className="bg-gradient-primary"
+                  onClick={() =>
+                    toast({
+                      title: "Conversion booked",
+                      description: `$${usdNum.toLocaleString()} → ₦${ngn.toLocaleString(undefined, { maximumFractionDigits: 2 })} at ₦${USD_NGN}/USD.`,
+                    })
+                  }
+                >
+                  Convert
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => toast({ title: "FX scheduled", description: "We'll execute when your rate is hit." })}
+                >
+                  Schedule
+                </Button>
               </div>
+              <NewPaymentDialog
+                trigger={<Button variant="ghost" size="sm" className="w-full">Use this rate to pay supplier →</Button>}
+              />
+            </CardContent>
+          </Card>
+        </motion.div>
+      </div>
             </CardContent>
           </Card>
         </motion.div>
