@@ -123,34 +123,44 @@ export const FxView = () => {
                   Schedule
                 </Button>
               </div>
-              <NewPaymentDialog
-                initialDirection={direction}
-                initialAmount={String(num)}
-                trigger={<Button variant="ghost" size="sm" className="w-full">Continue {fromCcy}→{toCcy} to payment →</Button>}
-              />
             </CardContent>
           </Card>
         </motion.div>
 
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
           <Card className="h-full border-border bg-card">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <TrendingUp className="h-5 w-5 text-success" /> Live FX rates
-              </CardTitle>
-              <p className="text-xs text-muted-foreground">Streaming · vs bank quotes</p>
+            <CardHeader className="space-y-2">
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <TrendingUp className="h-5 w-5 text-success" /> Live FX rates
+                </CardTitle>
+                <Button size="icon" variant="ghost" onClick={refreshNow} aria-label="Refresh rates">
+                  <RefreshCw className="h-4 w-4" />
+                </Button>
+              </div>
+              <div className="flex items-center gap-2">
+                <Badge variant="outline" className="border-success/40 bg-success/10 text-success">
+                  <span className="mr-1 inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-success" /> Live
+                </Badge>
+                <p className="text-[11px] text-muted-foreground">
+                  Updated {secondsAgo}s ago · auto-refresh every {REFRESH_MS / 1000}s
+                </p>
+              </div>
             </CardHeader>
             <CardContent className="space-y-2">
-              {rates.map((f) => (
-                <div key={f.p} className="rounded-md border border-border bg-background/50 p-3 transition-colors hover:border-primary/40">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-semibold">{f.p}</span>
-                    <span className="text-[11px] text-success">{f.s} vs bank</span>
+              {rates.map((f) => {
+                const spread = ((f.r - f.b) / f.b) * 100;
+                return (
+                  <div key={f.p} className="rounded-md border border-border bg-background/50 p-3 transition-colors hover:border-primary/40">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-semibold">{f.p}</span>
+                      <span className="text-[11px] text-success">+{spread.toFixed(2)}% vs bank</span>
+                    </div>
+                    <div className="mt-1 font-mono text-lg font-bold">₦{f.r.toLocaleString(undefined, { maximumFractionDigits: 2 })}</div>
+                    <div className="text-[11px] text-muted-foreground">Bank ₦{f.b.toLocaleString()}</div>
                   </div>
-                  <div className="mt-1 font-mono text-lg font-bold">₦{f.r.toLocaleString()}</div>
-                  <div className="text-[11px] text-muted-foreground">Bank ₦{f.b.toLocaleString()}</div>
-                </div>
-              ))}
+                );
+              })}
             </CardContent>
           </Card>
         </motion.div>
