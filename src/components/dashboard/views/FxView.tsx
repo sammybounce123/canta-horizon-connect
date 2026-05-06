@@ -104,7 +104,7 @@ export const FxView = () => {
               </div>
               <div className="flex items-center justify-between">
                 <p className="text-xs text-muted-foreground">
-                  Rate: 1 USD = ₦{USD_NGN.toLocaleString()} · Saves ~4.2% vs bank
+                  Rate: 1 USD = ₦{usdNgn.toLocaleString(undefined, { maximumFractionDigits: 4 })} · Saves ~4.2% vs bank
                 </p>
                 <Button variant="outline" size="sm" onClick={swap} className="gap-2">
                   <ArrowDownUp className="h-4 w-4" /> Swap
