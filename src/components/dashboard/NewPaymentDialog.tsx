@@ -18,7 +18,7 @@ interface Props {
   trigger?: ReactNode;
 }
 
-type Step = 0 | 1 | 2 | 3;
+type Step = number;
 
 export const NewPaymentDialog = ({ trigger }: Props) => {
   const { beneficiaries } = useBeneficiaries();
