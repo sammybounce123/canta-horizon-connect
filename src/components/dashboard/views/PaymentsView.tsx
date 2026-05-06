@@ -1,10 +1,13 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { CheckCircle2, Layers, Workflow } from "lucide-react";
+import { CheckCircle2, Download, Layers, Workflow } from "lucide-react";
+import * as XLSX from "xlsx";
+import { format } from "date-fns";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { toast } from "@/hooks/use-toast";
 import { NewPaymentDialog } from "../NewPaymentDialog";
 
 type Row = { ref: string; party: string; amount: string; level: string; status: "Pending" | "Approved" | "Scheduled" | "Settled"; date: string };
@@ -26,6 +29,21 @@ const scheduled: Row[] = [
   { ref: "SCH-204", party: "Payroll · UK entity", amount: "£94,200", level: "Auto · L3", status: "Scheduled", date: "May 28" },
   { ref: "SCH-205", party: "VAT remittance · NG", amount: "₦142M", level: "Auto · L3", status: "Scheduled", date: "May 30" },
   { ref: "SCH-206", party: "Vendor batch · 14 payees", amount: "$612,000", level: "Bulk · L2", status: "Scheduled", date: "Jun 02" },
+];
+
+const collections: Row[] = [
+  { ref: "COL-3312", party: "Wema Bank · NGN funding", amount: "₦325,000,000", level: "Auto", status: "Settled", date: "Today 08:21" },
+  { ref: "COL-3309", party: "Access Bank · NGN funding", amount: "₦82,500,000", level: "Auto", status: "Settled", date: "Yesterday" },
+  { ref: "COL-3304", party: "GTBank · NGN funding", amount: "₦14,200,000", level: "Auto", status: "Pending", date: "2d ago" },
+];
+
+const auditTrail = [
+  { ref: "PAY-8839", who: "Adaeze O. (CFO)", action: "Approved at L3", when: "Today 11:42" },
+  { ref: "PAY-8841", who: "Tunde A. (Finance Mgr)", action: "Approved at L2", when: "Today 10:58" },
+  { ref: "SCH-206", who: "Tunde A. (Finance Mgr)", action: "Initiated bulk batch · 14 payees", when: "Today 10:15" },
+  { ref: "COL-3312", who: "System", action: "NGN collection auto-credited to USD wallet", when: "Today 08:21" },
+  { ref: "PAY-8821", who: "Adaeze O. (CFO)", action: "Released for settlement", when: "2d ago 14:02" },
+  { ref: "COL-3304", who: "Chika M. (Operator)", action: "Initiated NGN collection", when: "2d ago 09:11" },
 ];
 
 const statusClass = (s: Row["status"]) =>
@@ -82,6 +100,39 @@ export const PaymentsView = () => {
             <p className="text-xs text-muted-foreground">Bulk payments · Multi-level approvals · Batching</p>
           </div>
           <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1.5"
+              onClick={() => {
+                const wb = XLSX.utils.book_new();
+                const toRows = (rows: Row[], type: string) =>
+                  rows.map((r) => ({
+                    Type: type, Reference: r.ref, Counterparty: r.party,
+                    Amount: r.amount, Approval: r.level, Date: r.date, Status: r.status,
+                  }));
+                const all = [
+                  ...toRows(incoming, "Incoming"),
+                  ...toRows(outgoing, "Outgoing"),
+                  ...toRows(scheduled, "Scheduled"),
+                  ...toRows(collections, "Collection (NGN)"),
+                ];
+                XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(all), "All payments");
+                XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(toRows(incoming, "Incoming")), "Incoming");
+                XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(toRows(outgoing, "Outgoing")), "Outgoing");
+                XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(toRows(scheduled, "Scheduled")), "Scheduled");
+                XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(toRows(collections, "Collection (NGN)")), "Collections (NGN)");
+                XLSX.utils.book_append_sheet(
+                  wb,
+                  XLSX.utils.json_to_sheet(auditTrail.map((a) => ({ Reference: a.ref, User: a.who, Action: a.action, When: a.when }))),
+                  "Audit trail",
+                );
+                XLSX.writeFile(wb, `canta-payments-${format(new Date(), "yyyyMMdd-HHmm")}.xlsx`);
+                toast({ title: "Payments exported", description: `${all.length} payments + audit trail.` });
+              }}
+            >
+              <Download className="h-4 w-4" /> Export payments
+            </Button>
             <Button variant="outline" size="sm" className="gap-1.5"><Layers className="h-4 w-4" /> Batch</Button>
             <NewPaymentDialog
               initialMode="collect"
@@ -96,10 +147,12 @@ export const PaymentsView = () => {
               <TabsTrigger value="incoming">Incoming · {incoming.length}</TabsTrigger>
               <TabsTrigger value="outgoing">Outgoing · {outgoing.length}</TabsTrigger>
               <TabsTrigger value="scheduled">Scheduled · {scheduled.length}</TabsTrigger>
+              <TabsTrigger value="collections">Collections · {collections.length}</TabsTrigger>
             </TabsList>
             <TabsContent value="incoming" className="mt-4"><Table rows={incoming} /></TabsContent>
             <TabsContent value="outgoing" className="mt-4"><Table rows={outgoing} /></TabsContent>
             <TabsContent value="scheduled" className="mt-4"><Table rows={scheduled} /></TabsContent>
+            <TabsContent value="collections" className="mt-4"><Table rows={collections} /></TabsContent>
           </Tabs>
         </CardContent>
       </Card>
