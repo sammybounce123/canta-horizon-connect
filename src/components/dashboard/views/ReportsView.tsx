@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { CalendarIcon, Download, FileSpreadsheet, FileText, ShieldCheck, X } from "lucide-react";
 import { format } from "date-fns";
+import * as XLSX from "xlsx";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -56,9 +57,27 @@ export const ReportsView = () => {
                 size="sm"
                 variant="outline"
                 className="gap-1.5"
-                onClick={() => toast({ title: "Exporting…", description: `${filtered.length} reports queued.` })}
+                onClick={() => {
+                  const ws = XLSX.utils.json_to_sheet(
+                    filtered.map((r) => ({
+                      Report: r.name,
+                      Period: r.period,
+                      Date: format(r.date, "yyyy-MM-dd"),
+                      Type: r.type,
+                      Size: r.size,
+                    })),
+                  );
+                  const wb = XLSX.utils.book_new();
+                  XLSX.utils.book_append_sheet(wb, ws, "Reports");
+                  const auditWs = XLSX.utils.json_to_sheet(
+                    audit.map((a) => ({ User: a.who, Action: a.what, When: a.when })),
+                  );
+                  XLSX.utils.book_append_sheet(wb, auditWs, "Audit trail");
+                  XLSX.writeFile(wb, `canta-treasury-${format(new Date(), "yyyyMMdd-HHmm")}.xlsx`);
+                  toast({ title: "Excel exported", description: `${filtered.length} reports + audit trail.` });
+                }}
               >
-                <Download className="h-4 w-4" /> Export all
+                <Download className="h-4 w-4" /> Export to Excel
               </Button>
             </div>
             <div className="flex flex-wrap items-center gap-2 pt-1">
@@ -92,7 +111,15 @@ export const ReportsView = () => {
                       size="sm"
                       variant="ghost"
                       className="gap-1.5"
-                      onClick={() => toast({ title: "Download started", description: r.name })}
+                      onClick={() => {
+                        const ws = XLSX.utils.json_to_sheet([{
+                          Report: r.name, Period: r.period, Date: format(r.date, "yyyy-MM-dd"), Type: r.type, Size: r.size,
+                        }]);
+                        const wb = XLSX.utils.book_new();
+                        XLSX.utils.book_append_sheet(wb, ws, "Report");
+                        XLSX.writeFile(wb, `${r.name.replace(/\s+/g, "-").toLowerCase()}.xlsx`);
+                        toast({ title: "Download started", description: r.name });
+                      }}
                     >
                       <Download className="h-4 w-4" /> Download
                     </Button>

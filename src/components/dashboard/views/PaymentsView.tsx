@@ -83,6 +83,10 @@ export const PaymentsView = () => {
           </div>
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" className="gap-1.5"><Layers className="h-4 w-4" /> Batch</Button>
+            <NewPaymentDialog
+              initialMode="collect"
+              trigger={<Button variant="outline" size="sm">Collect (NGN)</Button>}
+            />
             <NewPaymentDialog />
           </div>
         </CardHeader>
