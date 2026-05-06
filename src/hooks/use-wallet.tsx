@@ -120,7 +120,40 @@ export const useWallet = () => {
     persistTxns(next);
   }, []);
 
+  const fundUsd = useCallback((amount: number) => persistUsd(usd + amount), [usd]);
+
+  const cancelTxn = useCallback((id: string) => {
+    const all = readTxns();
+    const target = all.find((t) => t.id === id);
+    if (!target || target.status !== "in_flight") return;
+    // refund debited funds for payouts
+    if (target.kind === "payout") {
+      if (target.fromCcy === "NGN") persistNgn(readNum(NGN_KEY, DEFAULT_NGN) + target.fromAmount);
+      else if (target.fromCcy === "USD") persistUsd(readNum(USD_KEY, DEFAULT_USD) + target.fromAmount);
+    }
+    const next = all.map((t) => t.id === id ? { ...t, status: "failed" as const } : t);
+    persistTxns(next);
+  }, []);
+
+  const retryTxn = useCallback((id: string) => {
+    const all = readTxns();
+    const orig = all.find((t) => t.id === id);
+    if (!orig) return null;
+    const newId = `${orig.kind === "collection" ? "COL" : "PAY"}-${Math.floor(1000 + Math.random() * 9000)}`;
+    const stagesRaw = orig.kind === "collection" ? COLLECTION_STAGES : PAYOUT_STAGES(orig.fromCcy, orig.toCcy, orig.bank);
+    const now = Date.now();
+    const stages: TxnStage[] = stagesRaw.map((s, i) => ({ ...s, at: i === 0 ? now : null }));
+    // re-debit for payouts
+    if (orig.kind === "payout") {
+      if (orig.fromCcy === "NGN") persistNgn(Math.max(0, readNum(NGN_KEY, DEFAULT_NGN) - orig.fromAmount));
+      else if (orig.fromCcy === "USD") persistUsd(Math.max(0, readNum(USD_KEY, DEFAULT_USD) - orig.fromAmount));
+    }
+    const newTxn: Txn = { ...orig, id: newId, ref: newId, createdAt: now, status: "in_flight", stages, currentStage: 0, reference: `${orig.reference} (retry)` };
+    persistTxns([newTxn, ...readTxns()]);
+    return newTxn;
+  }, []);
+
   const inFlight = useMemo(() => txns.filter((t) => t.status === "in_flight").length, [txns]);
 
-  return { ngn, usd, txns, inFlight, fundNgn, debitNgn, creditUsd, debitUsd, createTxn, advanceTxn };
+  return { ngn, usd, txns, inFlight, fundNgn, fundUsd, debitNgn, creditUsd, debitUsd, createTxn, advanceTxn, cancelTxn, retryTxn };
 };
