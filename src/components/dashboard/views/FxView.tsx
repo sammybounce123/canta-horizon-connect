@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
 import { toast } from "@/hooks/use-toast";
 import { NewPaymentDialog } from "../NewPaymentDialog";
+import { WalletCard } from "../WalletCard";
 
 const rates = [
   { p: "USD/NGN", r: 1612.4, b: 1548, s: "+4.2%" },
@@ -40,6 +41,7 @@ export const FxView = () => {
 
   return (
     <div className="space-y-6">
+      <WalletCard />
       <div className="grid gap-6 lg:grid-cols-3">
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="lg:col-span-2">
           <Card className="h-full border-border bg-card">
