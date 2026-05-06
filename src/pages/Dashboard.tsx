@@ -8,6 +8,7 @@ import { FxView } from "@/components/dashboard/views/FxView";
 import { AnalyticsView } from "@/components/dashboard/views/AnalyticsView";
 import { ReportsView } from "@/components/dashboard/views/ReportsView";
 import { TeamView } from "@/components/dashboard/views/TeamView";
+import { TransactionRoomView } from "@/components/dashboard/views/TransactionRoomView";
 import { ImporterHomeView } from "@/components/dashboard/views/ImporterHomeView";
 import { ImporterPayView } from "@/components/dashboard/views/ImporterPayView";
 import { ImporterBeneficiariesView } from "@/components/dashboard/views/ImporterBeneficiariesView";
@@ -19,6 +20,7 @@ const TREASURY: Record<string, SectionMeta> = {
   overview: { nav: { id: "overview", label: "Overview" }, title: "Treasury Overview", subtitle: "See everything. Decide faster.", render: () => <OverviewView /> },
   cash: { nav: { id: "cash", label: "Cash Positions" }, title: "Cash Positions", subtitle: "Multi-currency cash across Nigeria & offshore accounts.", render: () => <CashPositionsView /> },
   payments: { nav: { id: "payments", label: "Payments" }, title: "Payments", subtitle: "Bulk payments, approvals and batching in one place.", render: () => <PaymentsView /> },
+  txnroom: { nav: { id: "txnroom", label: "Transaction Room" }, title: "Transaction Room", subtitle: "Real-time SWIFT-style tracking from initiation to beneficiary credit.", render: () => <TransactionRoomView /> },
   fx: { nav: { id: "fx", label: "FX Management" }, title: "FX Management", subtitle: "Optimize FX at scale · Live rates and exposure simulation.", render: () => <FxView /> },
   analytics: { nav: { id: "analytics", label: "Analytics" }, title: "Analytics & Insights", subtitle: "Volume, FX cost trends, exposure and counterparties.", render: () => <AnalyticsView /> },
   reports: { nav: { id: "reports", label: "Reports" }, title: "Reports & Audit", subtitle: "Downloadable reports and full audit trail.", render: () => <ReportsView /> },

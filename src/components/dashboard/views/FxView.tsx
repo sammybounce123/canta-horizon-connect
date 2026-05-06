@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
 import { toast } from "@/hooks/use-toast";
 import { NewPaymentDialog } from "../NewPaymentDialog";
+import { WalletCard } from "../WalletCard";
 
 const rates = [
   { p: "USD/NGN", r: 1612.4, b: 1548, s: "+4.2%" },
@@ -40,63 +41,44 @@ export const FxView = () => {
 
   return (
     <div className="space-y-6">
+      <WalletCard />
       <div className="grid gap-6 lg:grid-cols-3">
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="lg:col-span-2">
           <Card className="h-full border-border bg-card">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-lg">
-                <TrendingUp className="h-5 w-5 text-success" /> Live FX rates
-              </CardTitle>
-              <p className="text-xs text-muted-foreground">Streaming rates · vs. average bank quotes</p>
-            </CardHeader>
-            <CardContent className="grid gap-3 sm:grid-cols-2">
-              {rates.map((f) => (
-                <div key={f.p} className="rounded-md border border-border bg-background/50 p-4 transition-colors hover:border-primary/40">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-semibold">{f.p}</span>
-                    <span className="text-xs text-success">{f.s} vs bank</span>
-                  </div>
-                  <div className="mt-2 font-mono text-2xl font-bold">₦{f.r.toLocaleString()}</div>
-                  <div className="text-xs text-muted-foreground">Bank ₦{f.b.toLocaleString()}</div>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
-          <Card className="h-full border-border bg-card">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg">
                 <Calculator className="h-5 w-5 text-primary" /> Conversion
               </CardTitle>
+              <p className="text-xs text-muted-foreground">Book FX between your NGN and USD wallets at live mid-market rates</p>
             </CardHeader>
-            <CardContent className="space-y-3">
-              <div>
-                <label className="text-xs text-muted-foreground">From ({fromCcy})</label>
-                <Input
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  inputMode="decimal"
-                  className="mt-1 font-mono"
-                />
+            <CardContent className="space-y-4">
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <label className="text-xs text-muted-foreground">From ({fromCcy})</label>
+                  <Input
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                    inputMode="decimal"
+                    className="mt-1 font-mono text-lg"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-muted-foreground">To ({toCcy})</label>
+                  <Input
+                    readOnly
+                    value={`${symbol(toCcy)}${converted.toLocaleString(undefined, { maximumFractionDigits: 2 })}`}
+                    className="mt-1 font-mono text-lg"
+                  />
+                </div>
               </div>
-              <div className="flex justify-center">
-                <Button variant="outline" size="icon" onClick={swap} aria-label="Swap currency">
-                  <ArrowDownUp className="h-4 w-4" />
+              <div className="flex items-center justify-between">
+                <p className="text-xs text-muted-foreground">
+                  Rate: 1 USD = ₦{USD_NGN.toLocaleString()} · Saves ~4.2% vs bank
+                </p>
+                <Button variant="outline" size="sm" onClick={swap} className="gap-2">
+                  <ArrowDownUp className="h-4 w-4" /> Swap
                 </Button>
               </div>
-              <div>
-                <label className="text-xs text-muted-foreground">To ({toCcy})</label>
-                <Input
-                  readOnly
-                  value={`${symbol(toCcy)}${converted.toLocaleString(undefined, { maximumFractionDigits: 2 })}`}
-                  className="mt-1 font-mono"
-                />
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Rate: 1 USD = ₦{USD_NGN.toLocaleString()}
-              </p>
               <div className="grid grid-cols-2 gap-2 pt-1">
                 <Button
                   className="bg-gradient-primary"
@@ -121,6 +103,29 @@ export const FxView = () => {
                 initialAmount={String(num)}
                 trigger={<Button variant="ghost" size="sm" className="w-full">Continue {fromCcy}→{toCcy} to payment →</Button>}
               />
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
+          <Card className="h-full border-border bg-card">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <TrendingUp className="h-5 w-5 text-success" /> Live FX rates
+              </CardTitle>
+              <p className="text-xs text-muted-foreground">Streaming · vs bank quotes</p>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {rates.map((f) => (
+                <div key={f.p} className="rounded-md border border-border bg-background/50 p-3 transition-colors hover:border-primary/40">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-semibold">{f.p}</span>
+                    <span className="text-[11px] text-success">{f.s} vs bank</span>
+                  </div>
+                  <div className="mt-1 font-mono text-lg font-bold">₦{f.r.toLocaleString()}</div>
+                  <div className="text-[11px] text-muted-foreground">Bank ₦{f.b.toLocaleString()}</div>
+                </div>
+              ))}
             </CardContent>
           </Card>
         </motion.div>
