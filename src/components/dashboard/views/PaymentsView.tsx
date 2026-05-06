@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { NewPaymentDialog } from "../NewPaymentDialog";
 
 type Row = { ref: string; party: string; amount: string; level: string; status: "Pending" | "Approved" | "Scheduled" | "Settled"; date: string };
 
@@ -82,7 +83,7 @@ export const PaymentsView = () => {
           </div>
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" className="gap-1.5"><Layers className="h-4 w-4" /> Batch</Button>
-            <Button size="sm" className="bg-gradient-primary">New payment</Button>
+            <NewPaymentDialog />
           </div>
         </CardHeader>
         <CardContent>
