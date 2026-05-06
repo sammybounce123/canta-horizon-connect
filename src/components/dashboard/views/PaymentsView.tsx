@@ -31,6 +31,21 @@ const scheduled: Row[] = [
   { ref: "SCH-206", party: "Vendor batch · 14 payees", amount: "$612,000", level: "Bulk · L2", status: "Scheduled", date: "Jun 02" },
 ];
 
+const collections: Row[] = [
+  { ref: "COL-3312", party: "Wema Bank · NGN funding", amount: "₦325,000,000", level: "Auto", status: "Settled", date: "Today 08:21" },
+  { ref: "COL-3309", party: "Access Bank · NGN funding", amount: "₦82,500,000", level: "Auto", status: "Settled", date: "Yesterday" },
+  { ref: "COL-3304", party: "GTBank · NGN funding", amount: "₦14,200,000", level: "Auto", status: "Pending", date: "2d ago" },
+];
+
+const auditTrail = [
+  { ref: "PAY-8839", who: "Adaeze O. (CFO)", action: "Approved at L3", when: "Today 11:42" },
+  { ref: "PAY-8841", who: "Tunde A. (Finance Mgr)", action: "Approved at L2", when: "Today 10:58" },
+  { ref: "SCH-206", who: "Tunde A. (Finance Mgr)", action: "Initiated bulk batch · 14 payees", when: "Today 10:15" },
+  { ref: "COL-3312", who: "System", action: "NGN collection auto-credited to USD wallet", when: "Today 08:21" },
+  { ref: "PAY-8821", who: "Adaeze O. (CFO)", action: "Released for settlement", when: "2d ago 14:02" },
+  { ref: "COL-3304", who: "Chika M. (Operator)", action: "Initiated NGN collection", when: "2d ago 09:11" },
+];
+
 const statusClass = (s: Row["status"]) =>
   s === "Approved" || s === "Settled"
     ? "border-success/40 bg-success/10 text-success"
