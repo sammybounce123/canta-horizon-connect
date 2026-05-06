@@ -111,17 +111,11 @@ export const FxView = () => {
                 </Button>
               </div>
               <div className="grid grid-cols-2 gap-2 pt-1">
-                <Button
-                  className="bg-gradient-primary"
-                  onClick={() =>
-                    toast({
-                      title: "Conversion booked",
-                      description: `${symbol(fromCcy)}${num.toLocaleString()} ${fromCcy} → ${symbol(toCcy)}${converted.toLocaleString(undefined, { maximumFractionDigits: 2 })} ${toCcy}.`,
-                    })
-                  }
-                >
-                  Convert
-                </Button>
+                <NewPaymentDialog
+                  initialDirection={direction}
+                  initialAmount={String(num)}
+                  trigger={<Button className="bg-gradient-primary w-full">Send</Button>}
+                />
                 <Button
                   variant="outline"
                   onClick={() => toast({ title: "FX scheduled", description: "We'll execute when your rate is hit." })}
