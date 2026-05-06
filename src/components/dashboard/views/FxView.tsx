@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Calculator, TrendingUp, Zap } from "lucide-react";
+import { ArrowDownUp, Calculator, TrendingUp, Zap } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,11 +19,25 @@ const USD_NGN = 1612.4;
 
 export const FxView = () => {
   const [shock, setShock] = useState([-2]);
-  const [usd, setUsd] = useState("100,000");
-  const usdNum = Number(usd.replace(/[^0-9.]/g, "")) || 0;
-  const ngn = usdNum * USD_NGN;
+  // direction: "usd_to_ngn" or "ngn_to_usd"
+  const [direction, setDirection] = useState<"usd_to_ngn" | "ngn_to_usd">("usd_to_ngn");
+  const [amount, setAmount] = useState("100,000");
+
+  const num = Number(amount.replace(/[^0-9.]/g, "")) || 0;
+  const fromCcy = direction === "usd_to_ngn" ? "USD" : "NGN";
+  const toCcy = direction === "usd_to_ngn" ? "NGN" : "USD";
+  const converted = direction === "usd_to_ngn" ? num * USD_NGN : num / USD_NGN;
+  const symbol = (c: string) => (c === "USD" ? "$" : "₦");
+
+  const swap = () => {
+    setDirection((d) => (d === "usd_to_ngn" ? "ngn_to_usd" : "usd_to_ngn"));
+    // carry the currently displayed result over as the new "from" amount for continuity
+    setAmount(converted.toLocaleString(undefined, { maximumFractionDigits: 2 }));
+  };
+
   const exposure = 1_960_000;
   const impact = exposure * (shock[0] / 100);
+
   return (
     <div className="space-y-6">
       <div className="grid gap-6 lg:grid-cols-3">
@@ -59,29 +73,37 @@ export const FxView = () => {
             </CardHeader>
             <CardContent className="space-y-3">
               <div>
-                <label className="text-xs text-muted-foreground">From (USD)</label>
+                <label className="text-xs text-muted-foreground">From ({fromCcy})</label>
                 <Input
-                  value={usd}
-                  onChange={(e) => setUsd(e.target.value)}
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
                   inputMode="decimal"
                   className="mt-1 font-mono"
                 />
               </div>
+              <div className="flex justify-center">
+                <Button variant="outline" size="icon" onClick={swap} aria-label="Swap currency">
+                  <ArrowDownUp className="h-4 w-4" />
+                </Button>
+              </div>
               <div>
-                <label className="text-xs text-muted-foreground">To (NGN)</label>
+                <label className="text-xs text-muted-foreground">To ({toCcy})</label>
                 <Input
                   readOnly
-                  value={`₦${ngn.toLocaleString(undefined, { maximumFractionDigits: 2 })}`}
+                  value={`${symbol(toCcy)}${converted.toLocaleString(undefined, { maximumFractionDigits: 2 })}`}
                   className="mt-1 font-mono"
                 />
               </div>
+              <p className="text-xs text-muted-foreground">
+                Rate: 1 USD = ₦{USD_NGN.toLocaleString()}
+              </p>
               <div className="grid grid-cols-2 gap-2 pt-1">
                 <Button
                   className="bg-gradient-primary"
                   onClick={() =>
                     toast({
                       title: "Conversion booked",
-                      description: `$${usdNum.toLocaleString()} → ₦${ngn.toLocaleString(undefined, { maximumFractionDigits: 2 })} at ₦${USD_NGN}/USD.`,
+                      description: `${symbol(fromCcy)}${num.toLocaleString()} ${fromCcy} → ${symbol(toCcy)}${converted.toLocaleString(undefined, { maximumFractionDigits: 2 })} ${toCcy}.`,
                     })
                   }
                 >
@@ -95,7 +117,9 @@ export const FxView = () => {
                 </Button>
               </div>
               <NewPaymentDialog
-                trigger={<Button variant="ghost" size="sm" className="w-full">Use this rate to pay supplier →</Button>}
+                initialDirection={direction}
+                initialAmount={String(num)}
+                trigger={<Button variant="ghost" size="sm" className="w-full">Continue {fromCcy}→{toCcy} to payment →</Button>}
               />
             </CardContent>
           </Card>
