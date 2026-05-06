@@ -30,6 +30,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { toast } from "@/hooks/use-toast";
+import { setSegmentValue } from "@/hooks/use-segment";
 
 type ClientType = "importer" | "treasury";
 
@@ -90,6 +91,7 @@ const Onboarding = () => {
   };
 
   const submit = () => {
+    if (client) setSegmentValue(client);
     toast({
       title: "Application submitted",
       description: "Our team will review and reach out within 24 hours.",
