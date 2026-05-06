@@ -1,40 +1,71 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowDownUp, Calculator, TrendingUp, Zap } from "lucide-react";
+import { ArrowDownUp, Calculator, RefreshCw, TrendingUp, Zap } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "@/hooks/use-toast";
 import { NewPaymentDialog } from "../NewPaymentDialog";
 import { WalletCard } from "../WalletCard";
 
-const rates = [
-  { p: "USD/NGN", r: 1612.4, b: 1548, s: "+4.2%" },
-  { p: "GBP/NGN", r: 2054.1, b: 1970, s: "+4.3%" },
-  { p: "EUR/NGN", r: 1765.8, b: 1696, s: "+4.1%" },
-  { p: "RMB/NGN", r: 222.6, b: 213, s: "+4.5%" },
+const BASE_RATES = [
+  { p: "USD/NGN", r: 1612.4, b: 1548 },
+  { p: "GBP/NGN", r: 2054.1, b: 1970 },
+  { p: "EUR/NGN", r: 1765.8, b: 1696 },
+  { p: "RMB/NGN", r: 222.6, b: 213 },
 ];
 
-const USD_NGN = 1612.4;
+const REFRESH_MS = 10_000;
 
 export const FxView = () => {
   const [shock, setShock] = useState([-2]);
-  // direction: "usd_to_ngn" or "ngn_to_usd"
   const [direction, setDirection] = useState<"usd_to_ngn" | "ngn_to_usd">("usd_to_ngn");
   const [amount, setAmount] = useState("100,000");
+  const [rates, setRates] = useState(BASE_RATES);
+  const [lastUpdated, setLastUpdated] = useState(Date.now());
+  const [, setTick] = useState(0);
+  const intervalRef = useRef<number | null>(null);
+
+  const tickRates = () => {
+    setRates((prev) =>
+      prev.map((row) => {
+        const drift = (Math.random() - 0.5) * 0.007;
+        return { ...row, r: Math.max(1, row.r * (1 + drift)) };
+      })
+    );
+    setLastUpdated(Date.now());
+  };
+
+  useEffect(() => {
+    intervalRef.current = window.setInterval(tickRates, REFRESH_MS);
+    const sec = window.setInterval(() => setTick((t) => t + 1), 1000);
+    return () => {
+      if (intervalRef.current) window.clearInterval(intervalRef.current);
+      window.clearInterval(sec);
+    };
+  }, []);
+
+  const usdNgn = rates.find((r) => r.p === "USD/NGN")?.r ?? 1612.4;
 
   const num = Number(amount.replace(/[^0-9.]/g, "")) || 0;
   const fromCcy = direction === "usd_to_ngn" ? "USD" : "NGN";
   const toCcy = direction === "usd_to_ngn" ? "NGN" : "USD";
-  const converted = direction === "usd_to_ngn" ? num * USD_NGN : num / USD_NGN;
+  const converted = direction === "usd_to_ngn" ? num * usdNgn : num / usdNgn;
   const symbol = (c: string) => (c === "USD" ? "$" : "₦");
 
   const swap = () => {
     setDirection((d) => (d === "usd_to_ngn" ? "ngn_to_usd" : "usd_to_ngn"));
-    // carry the currently displayed result over as the new "from" amount for continuity
     setAmount(converted.toLocaleString(undefined, { maximumFractionDigits: 2 }));
   };
+
+  const refreshNow = () => {
+    tickRates();
+    toast({ title: "Live rates refreshed" });
+  };
+
+  const secondsAgo = Math.floor((Date.now() - lastUpdated) / 1000);
 
   const exposure = 1_960_000;
   const impact = exposure * (shock[0] / 100);
